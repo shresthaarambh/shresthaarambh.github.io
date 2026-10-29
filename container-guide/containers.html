@@ -1,0 +1,579 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Understanding containerization through Docker, Kubernetes, and the path from one process to a coordinated system." />
+    <title>Containers</title>
+    <style>
+      @font-face { font-family: GeistSans; src: url("https://hairline.lucasmarkes.com/_next/static/immutable/media/Geist_Variable-s.p.2-i4fw5gbtlb7.woff2") format("woff2"); font-display: swap; font-weight: 100 900; }
+      @font-face { font-family: GeistMono; src: url("https://hairline.lucasmarkes.com/_next/static/immutable/media/GeistMono_Variable.p.0b02cdm7g7y6h.woff2") format("woff2"); font-display: swap; font-weight: 100 900; }
+      @font-face { font-family: Instrument Serif; src: url("https://hairline.lucasmarkes.com/_next/static/immutable/media/e41d5df559864f9e-s.p.2rlzm4mj5kw8e.woff2") format("woff2"); font-style: normal; font-weight: 400; font-display: swap; }
+      :root {
+        --topbar: 54px;
+        --gutter: clamp(18px, 5vw, 28px);
+        --canvas: #fff;
+        --stone: #f4f4f4;
+        --ink: #0a0a0a;
+        --muted: #737373;
+        --faint: #a3a3a3;
+        --line: #00000012;
+        --blue: #3b82f6;
+        --blue-soft: #eff6ff;
+        --card: 0 0 0 1px #0000000f, 0 1px 2px -1px #0000000f, 0 2px 4px 0 #0000000a;
+        --lift: 0 1px 2px #00000008, 0 10px 28px -16px #00000024;
+        --ease-out: cubic-bezier(.23, 1, .32, 1);
+      }
+
+      * { box-sizing: border-box; }
+      html { color-scheme: light; scroll-behavior: auto; }
+      body { min-height: 100vh; margin: 0; color: var(--ink); background: var(--canvas); font-family: GeistSans, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+      a { color: inherit; text-decoration: none; }
+      button { color: inherit; border: 0; background: none; font: inherit; cursor: pointer; }
+      code, pre { font-family: GeistMono, Consolas, monospace; }
+      svg { display: block; }
+
+      .topbar { position: sticky; z-index: 20; top: 0; display: flex; align-items: center; height: var(--topbar); padding: 0 max(var(--gutter), calc((100% - 1080px) / 2 + var(--gutter))); border-bottom: 1px solid transparent; background: rgb(255 255 255 / 82%); backdrop-filter: blur(12px); }
+      .topbar.scrolled { border-bottom-color: var(--line); }
+      .brand { display: inline-flex; align-items: center; gap: 9px; }
+      .brand-mark { display: grid; width: 20px; height: 20px; place-items: center; color: var(--blue); }
+      .brand-name { font-size: 15px; font-weight: 600; letter-spacing: -.02em; }
+      .main-site-link { display: inline-flex; align-items: center; gap: 7px; margin-left: auto; padding: 7px 10px; color: var(--muted); border-radius: 999px; font-size: 12px; font-weight: 550; transition: background .2s ease, color .2s ease; }
+      .main-site-link:hover, .main-site-link:focus-visible { color: var(--ink); background: var(--stone); outline: none; }
+      .main-site-link svg { color: var(--muted); }
+      .scroll-cue { position: absolute; bottom: clamp(22px, 6vh, 56px); left: 50%; display: inline-flex; flex-direction: column; align-items: center; gap: 7px; margin: 0; color: var(--muted); font: 10px/1 GeistMono, Consolas, monospace; letter-spacing: .08em; text-transform: uppercase; transform: translateX(-50%); animation: scroll-cue-bob 2s ease-in-out infinite; transition: opacity .25s ease, visibility .25s ease; }
+      .scroll-cue svg { width: 16px; height: 16px; }
+      .intro-scrolled .scroll-cue { opacity: 0; visibility: hidden; pointer-events: none; animation-play-state: paused; }
+      @keyframes scroll-cue-bob { 0%, 100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, 4px); } }
+
+      .rail { display: none; }
+      .rail-group { --group-color: var(--blue); display: grid; gap: 6px; }
+      .rail-title { display: flex; align-items: center; gap: 8px; margin: 0; color: #525252; font-size: 12px; font-weight: 550; line-height: 1.5; }
+      .rail-title svg { color: var(--group-color); }
+      .rail-home { padding: 0; }
+      .rail-home::before, .rail-home::after { display: none !important; }
+      body.intro-mode { overflow-x: hidden; }
+      body.intro-mode .topbar,
+      body.intro-mode .rail,
+      body.intro-mode .mobile-nav { display: none; }
+      .rail-list { position: relative; display: grid; gap: 0; margin: 0; padding: 0 0 0 24px; list-style: none; }
+      .rail-list::after { content: ""; position: absolute; top: -2px; bottom: 0; left: 7px; width: 11px; border-left: 1px solid var(--group-color); pointer-events: none; clip-path: inset(0 0 calc((1 - var(--reach, 0)) * 100%) 0); }
+      .rail-list li { position: relative; }
+      .rail-list li::before, .rail-list li::after { content: ""; position: absolute; left: -17px; width: 11px; border: 0 solid #e5e5e5; border-width: 0 0 1px 1px; border-bottom-left-radius: 6px; pointer-events: none; }
+      .rail-list li::before { top: calc(-50% - 6px); bottom: 50%; }
+      .rail-list li:first-child::before { top: -2px; }
+      .rail-list li::after { z-index: 1; top: calc(50% - 6px); width: 10px; height: 6px; border-color: var(--group-color); clip-path: inset(0 100% 0 0 round 0 0 0 6px); }
+      .rail-list li.current::after { clip-path: inset(0 round 0 0 0 6px); }
+      .doc-link { position: relative; display: flex; align-items: center; height: auto; padding: 3px 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+      .doc-link::before { content: ""; position: absolute; left: -6.5px; top: calc(50% - 2.5px); width: 4px; height: 4px; border-radius: 50%; background: var(--group-color); transform: scale(0); }
+      .doc-link::after { content: ""; position: absolute; inset: -2px -8px; }
+      .doc-link:hover, .doc-link.active { color: var(--ink); }
+      .doc-link.active::before { transform: none; }
+
+      .mobile-nav { display: block; overflow: hidden; border-bottom: 1px solid var(--line); }
+      .mobile-nav-scroll { display: flex; gap: 4px; overflow-x: auto; padding: 10px var(--gutter); scrollbar-width: none; }
+      .mobile-nav-scroll::-webkit-scrollbar { display: none; }
+      .mobile-nav .doc-link { flex: none; padding: 5px 10px; font-size: 12.5px; }
+      .mobile-nav .doc-link::before { display: none; }
+
+      .content { max-width: calc(840px + 2 * var(--gutter)); margin: 0 auto; padding: 56px var(--gutter) 96px; font-size: 14.5px; line-height: 1.58; }
+      .content > * { min-width: 0; }
+      .hero h1 { max-width: 24ch; margin: 0; font-size: 17px; font-weight: 550; letter-spacing: -.01em; line-height: 1.35; }
+      .hero h1 em { font-family: "Instrument Serif", Georgia, serif; font-size: 1.14em; font-weight: 400; }
+      .eyebrow { margin: 0 0 11px; color: var(--muted); font: 11.5px/1 GeistMono, Consolas, monospace; letter-spacing: .06em; text-transform: uppercase; }
+      .hero-lede { max-width: 60ch; margin: 12px 0 0; color: var(--muted); }
+      .hero-art { position: relative; height: 112px; margin: 28px 0 4px; overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: linear-gradient(135deg, #fff, #fafafa); box-shadow: var(--card); }
+      .hero-art::after { content: ""; position: absolute; inset: 0; opacity: .3; background-image: radial-gradient(#d7d7d7 .75px, transparent .75px); background-size: 13px 13px; mask-image: linear-gradient(90deg, transparent, #000 20%, #000 80%, transparent); }
+      .signal { position: absolute; z-index: 1; left: 11%; right: 11%; top: 50%; height: 1px; background: #d1d1d1; }
+      .signal::before, .signal::after { content: ""; position: absolute; top: -4px; width: 8px; height: 8px; border: 1px solid var(--blue); border-radius: 50%; background: #fff; }
+      .signal::before { left: 15%; }
+      .signal::after { right: 14%; }
+      .signal-node { position: absolute; z-index: 1; top: 50%; left: 50%; width: 52px; height: 52px; border: 1px solid var(--blue); border-radius: 12px; background: #fff; box-shadow: 7px -7px 0 -1px #fff, 7px -7px 0 0 #93c5fd; transform: translate(-50%, -50%) rotate(45deg); }
+      .signal-node::after { content: ""; position: absolute; inset: 12px; border: 1px dashed #93c5fd; border-radius: 5px; }
+      .signal-label { position: absolute; z-index: 1; left: 22px; bottom: 16px; color: var(--faint); font: 10px/1 GeistMono, Consolas, monospace; letter-spacing: .04em; text-transform: uppercase; }
+
+      .section { position: relative; min-height: calc(100vh - var(--topbar)); display: flex; flex-direction: column; justify-content: center; gap: 14px; padding: 56px 0; scroll-margin-top: var(--topbar); }
+      .section-head { display: flex; align-items: center; gap: 4px; min-height: 28px; }
+      .section h2 { margin: 0; font-size: 17.5px; font-weight: 600; letter-spacing: -.01em; line-height: 1.35; }
+      .intro-section { align-items: center; text-align: center; }
+      .intro-lockup { display: flex; align-items: center; gap: 14px; }
+      .intro-mark { width: 48px; height: 48px; color: var(--blue); }
+      .intro-section h1 { margin: 0; font-size: 28px; font-weight: 600; letter-spacing: -.03em; }
+      body.intro-mode .content { padding-top: 0; }
+      body.intro-mode .intro-section { min-height: 100vh; padding-top: 0; padding-bottom: 0; }
+      .anchor { display: grid; width: 28px; height: 28px; place-items: center; color: var(--muted); border-radius: 50%; opacity: 0; }
+      .section-head:hover .anchor, .anchor.copied { opacity: 1; }
+      .anchor:hover { color: var(--ink); background: var(--stone); }
+      .doc-p, .doc-list { max-width: none; margin: 0; }
+      .doc-list { display: grid; gap: 7px; padding-left: 1.2em; list-style: outside; }
+      .doc-list li::marker { color: var(--faint); }
+      .doc-note { max-width: 64ch; margin: 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
+      .subsection { display: grid; gap: 10px; padding-top: 18px; border-top: 1px solid var(--line); }
+      .subsection-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+      .subsection h3 { margin: 0; font-size: 14.5px; font-weight: 600; }
+      .has-visual { padding-top: 40px; padding-bottom: 40px; }
+      .section-visual { display: grid; width: min(100%, 500px); height: 260px; margin: 0 auto; place-items: center; overflow: hidden; }
+      .section-visual img { display: block; width: 100%; height: 100%; object-fit: contain; }
+      .section-kicker { margin: 0; color: var(--faint); font: 10.5px/1 GeistMono, Consolas, monospace; letter-spacing: .06em; text-transform: uppercase; }
+      .explain-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+      .explain-card { display: grid; align-content: start; gap: 7px; min-height: 132px; padding: 15px; border: 1px solid var(--line); border-radius: 11px; background: #fff; box-shadow: var(--card); }
+      .explain-card:hover { transform: translateY(-2px); box-shadow: inset 0 0 0 1px var(--stone), var(--lift); }
+      .explain-card strong { font-size: 13px; font-weight: 550; }
+      .explain-card p { margin: 0; color: var(--muted); font-size: 12.5px; line-height: 1.5; }
+      .card-kicker { color: var(--faint); font: 10px/1 GeistMono, Consolas, monospace; letter-spacing: .05em; text-transform: uppercase; }
+      .timeline { display: grid; gap: 0; border-top: 1px solid var(--line); }
+      .timeline-item { display: grid; grid-template-columns: 42px 1fr; gap: 12px; padding: 15px 0; border-bottom: 1px solid var(--line); }
+      .timeline-number { color: var(--faint); font: 11px/1 GeistMono, Consolas, monospace; }
+      .timeline-item strong { display: block; margin-bottom: 4px; font-size: 13px; font-weight: 550; }
+      .timeline-item p { margin: 0; color: var(--muted); font-size: 13px; }
+      .layer-stack { display: grid; gap: 5px; max-width: 420px; }
+      .layer { display: flex; align-items: center; justify-content: space-between; min-height: 34px; padding: 0 12px; border: 1px solid var(--line); border-radius: 8px; background: #fff; box-shadow: var(--card); }
+      .layer:nth-child(2) { margin-left: 10px; }
+      .layer:nth-child(3) { margin-left: 20px; }
+      .layer:nth-child(4) { margin-left: 30px; }
+      .layer strong { font-size: 13px; font-weight: 500; }
+      .layer span { color: var(--muted); font: 11px/1 GeistMono, Consolas, monospace; }
+      .terminal { overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: #fff; color: var(--ink); box-shadow: var(--card); }
+      .terminal-bar { display: flex; align-items: center; justify-content: space-between; min-height: 38px; padding: 0 14px; border-bottom: 1px solid var(--line); color: var(--muted); font: 11px/1 GeistMono, Consolas, monospace; }
+      .terminal-status { color: var(--ink); }
+      .terminal-output { min-height: 106px; padding: 14px; overflow-y: auto; color: #404040; font: 12px/1.7 GeistMono, Consolas, monospace; }
+      .terminal-line { white-space: pre-wrap; overflow-wrap: anywhere; }
+      .terminal-prompt { color: var(--muted); }
+      .terminal-muted { color: var(--muted); }
+      .terminal-form { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--line); font: 12px/1 GeistMono, Consolas, monospace; }
+      .terminal-form input { flex: 1; min-width: 0; color: var(--ink); border: 0; outline: 0; background: transparent; font: inherit; }
+      .terminal-form input::placeholder { color: var(--faint); }
+      .terminal-form button { padding: 5px 8px; color: var(--muted); border: 1px solid var(--line); border-radius: 6px; font-size: 11px; }
+      .terminal-form button:hover { color: var(--ink); background: var(--stone); }
+      .pipeline { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; }
+      .pipeline-step { position: relative; display: grid; gap: 5px; padding: 13px 10px; border: 1px solid var(--line); border-radius: 10px; background: #fff; box-shadow: var(--card); }
+      .pipeline-step:not(:last-child)::after { content: "→"; position: absolute; right: -23px; top: 50%; z-index: 1; color: var(--muted); transform: translateY(-50%); }
+      .pipeline-step strong { font-size: 12px; font-weight: 550; }
+      .pipeline-step span { color: var(--muted); font-size: 11.5px; line-height: 1.35; }
+      .scale-demo { display: grid; gap: 12px; padding: 18px; border: 1px solid var(--line); border-radius: 12px; background: #fff; box-shadow: var(--card); }
+      .scale-bars { display: flex; align-items: end; gap: 7px; height: 86px; padding: 0 4px 4px; border-bottom: 1px solid var(--line); }
+      .scale-bars span { flex: 1; max-width: 34px; height: var(--height); border: 1px solid #a3a3a3; border-radius: 4px 4px 1px 1px; background: #fafafa; transform-origin: bottom; }
+      .scale-caption { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font: 11px/1.3 GeistMono, Consolas, monospace; }
+      .orchestration-flow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+      .orchestration-node { position: relative; display: grid; place-items: center; min-height: 92px; padding: 12px; text-align: center; border: 1px solid var(--line); border-radius: 12px; background: #fff; box-shadow: var(--card); }
+      .orchestration-node::after { content: "→"; position: absolute; right: -23px; color: var(--muted); }
+      .orchestration-node:last-child::after { display: none; }
+      .orchestration-node strong { font-size: 13px; font-weight: 550; }
+      .orchestration-node span { margin-top: 4px; color: var(--muted); font-size: 11px; }
+
+      .command { display: flex; align-items: center; gap: 10px; max-width: 460px; height: 48px; padding: 0 6px 0 16px; overflow: hidden; border-radius: 14px; background: #fff; box-shadow: inset 0 0 0 1px var(--stone), var(--lift); font: 400 14px/1 GeistMono, Consolas, monospace; }
+      .command .prompt { color: var(--blue); }
+      .command code { flex: 1; min-width: 0; overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
+      .command code::-webkit-scrollbar { display: none; }
+      .command button { width: 30px; height: 30px; flex: none; color: var(--muted); border-radius: 50%; font-size: 12px; }
+      .command button:hover { color: var(--blue); background: var(--blue-soft); }
+
+      .code-card, .table-card, .callout, .docker-demo { overflow: hidden; border-radius: 12px; background: #fff; box-shadow: var(--card); }
+      .code-bar { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 4px 14px; border-bottom: 1px solid var(--stone); }
+      .code-title { flex: 1; color: var(--muted); font-size: 12px; }
+      .code-copy { padding: 5px 8px; color: var(--muted); border-radius: 7px; font-size: 12px; }
+      .code-copy:hover { color: var(--blue); background: var(--blue-soft); }
+      pre { margin: 0; padding: 16px 18px; overflow-x: auto; color: #0a0a0a; font-size: 13px; line-height: 1.65; }
+      .kw { color: #6b6b6b; } .str { color: #2563eb; } .fn { color: #404040; } .cm { color: #858585; }
+      .table-card { padding: 4px 16px; overflow-x: auto; }
+      table { width: 100%; border-collapse: collapse; font-size: 13px; }
+      th { padding: 8px 14px 8px 0; color: var(--muted); font-weight: 550; text-align: left; white-space: nowrap; }
+      td { padding: 12px 14px 12px 0; border-top: 1px solid var(--line); vertical-align: top; line-height: 1.5; }
+      td:nth-child(2), td:nth-child(3) { color: var(--muted); }
+      th:last-child, td:last-child { padding-right: 0; }
+      .command-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+      .command-table td { padding: 5px 0; border: 0; vertical-align: top; line-height: 1.45; }
+      .command-table td:first-child { width: 46%; padding-right: 18px; color: var(--ink); font-family: GeistMono, Consolas, monospace; overflow-wrap: anywhere; }
+      .command-table td:nth-child(2) { color: var(--muted); padding-right: 12px; }
+      .command-table td:last-child { width: 1%; color: var(--muted); text-align: right; white-space: nowrap; }
+      .command-cell { display: block; }
+      .command-copy { flex: none; padding: 2px 5px; color: var(--muted); border: 1px solid var(--line); border-radius: 5px; background: #fff; font: 10px/1 GeistSans, Arial, sans-serif; }
+      .command-copy:hover { color: var(--ink); background: var(--stone); }
+      .try-it-section { gap: 10px; }
+      .try-it-section .code-bar { min-height: 36px; }
+      .try-it-section .subsection { gap: 7px; padding-top: 12px; }
+      .try-it-section .command-table td { padding: 2px 0; line-height: 1.3; }
+      .try-it-section .doc-p { line-height: 1.45; }
+      .try-it-section .terminal-bar { min-height: 30px; }
+      .try-it-section .terminal-output { min-height: 52px; padding: 8px 12px; line-height: 1.5; }
+      .try-it-section .terminal-form { padding: 6px 12px; }
+      @media (max-width: 640px) {
+        .has-visual { padding-top: 34px; padding-bottom: 34px; }
+        .section-visual { height: 135px; }
+        .try-it-section .command-table { font-size: 11px; }
+        .try-it-section .command-table td { padding-block: 1px; line-height: 1.2; }
+        .try-it-section .command-table td:first-child { width: 44%; padding-right: 8px; }
+        .try-it-section .command-table td:nth-child(2) { padding-right: 8px; }
+        .try-it-section .command-table td:last-child { padding-left: 4px; }
+        .try-it-section .command-copy { padding-inline: 3px; }
+        .try-it-section .terminal-output { min-height: 44px; line-height: 1.35; }
+      }
+
+      @media (min-width: 641px) and (max-height: 850px) {
+        .has-visual { padding-top: 18px; padding-bottom: 18px; }
+      }
+
+      .callout { display: grid; gap: 9px; padding: 18px; border-left: 2px solid var(--blue); }
+      .callout.neutral { border-left-color: var(--line); }
+      .callout strong { font-size: 14px; font-weight: 550; }
+      .callout p { margin: 0; color: var(--muted); }
+      .docker-demo { position: relative; min-height: 184px; padding: 22px; background: linear-gradient(135deg, #fff, #f8fbff); }
+      .demo-label { position: relative; z-index: 2; margin: 0; color: var(--muted); font: 11px/1 GeistMono, Consolas, monospace; letter-spacing: .05em; text-transform: uppercase; }
+      .demo-track { position: absolute; left: 9%; right: 9%; top: 54%; height: 1px; background: var(--line); }
+      .demo-track::before, .demo-track::after { content: ""; position: absolute; top: -4px; width: 8px; height: 8px; border: 1px solid var(--muted); border-radius: 50%; background: #fff; }
+      .demo-track::before { left: 0; }
+      .demo-track::after { right: 0; }
+      .demo-container { position: absolute; z-index: 1; top: calc(54% - 24px); left: 16%; width: 48px; height: 48px; border: 1px solid var(--blue); border-radius: 8px; background: #fff; box-shadow: 5px -5px 0 -1px #fff, 5px -5px 0 0 #93c5fd; transform: rotate(45deg); }
+      .demo-container::after { content: ""; position: absolute; inset: 11px; border: 1px dashed #93c5fd; border-radius: 3px; }
+      .demo-engine { position: absolute; right: 12%; bottom: 24px; color: var(--muted); font: 11px/1 GeistMono, Consolas, monospace; }
+      .demo-engine::before { content: ""; display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 50%; background: var(--muted); }
+      .demo-stage { position: absolute; top: 58%; color: var(--muted); font: 10px/1 GeistMono, Consolas, monospace; letter-spacing: .05em; text-transform: uppercase; transform: translateY(14px); }
+      .stage-image { left: 9%; }
+      .stage-run { left: 50%; transform: translate(-50%, 14px); }
+      .stage-exit { right: 9%; }
+      .diagram { display: grid; grid-template-columns: repeat(3, 1fr); align-items: center; gap: 32px; }
+      .diagram-node { position: relative; padding: 18px 12px; text-align: center; border: 1px solid var(--line); border-radius: 12px; background: #fff; box-shadow: var(--card); }
+      .diagram-node::after { content: "→"; position: absolute; right: -23px; color: var(--muted); }
+      .diagram-node:last-child::after { display: none; }
+      .diagram-node strong { display: block; font-size: 13px; font-weight: 550; }
+      .diagram-node span { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; }
+      .endnote { margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; text-align: center; }
+
+      @media (min-width: 1100px) {
+        .rail { position: fixed; z-index: 10; top: calc(50% + var(--topbar) / 2); bottom: auto; left: max(0px, calc((100% - 1240px) / 2)); display: flex; flex-direction: column; justify-content: center; width: 220px; max-height: calc(100vh - var(--topbar) - 48px); padding: 0; transform: translateY(-50%); }
+        .rail-scroll { min-height: 0; overflow-y: auto; scrollbar-width: none; }
+        .rail-scroll::-webkit-scrollbar { display: none; }
+        .mobile-nav { display: none; }
+        .content { max-width: calc(840px + 2 * var(--gutter)); margin: 0 auto; padding-right: var(--gutter); padding-left: var(--gutter); }
+        .content > * { max-width: 840px; }
+        .section { scroll-margin-top: var(--topbar); }
+      }
+
+      @media (max-width: 640px) {
+        .brand-name { font-size: 14px; }
+        .hero-art { height: 96px; }
+        .table-card { padding-inline: 14px; }
+        table thead { display: none; }
+        table tr { display: flex; flex-wrap: wrap; column-gap: 12px; padding: 14px 0; border-top: 1px solid var(--line); }
+        table tr:first-child { border-top: 0; }
+        table td { padding: 0; border: 0; }
+        table td:nth-child(3) { flex-basis: 100%; margin-top: 6px; }
+        .diagram { grid-template-columns: 1fr; row-gap: 28px; }
+        .diagram-node::after { right: auto; bottom: -18px; left: 50%; content: "↓"; }
+        .diagram-node:last-child::after { display: none; }
+        .explain-grid, .pipeline, .orchestration-flow { grid-template-columns: 1fr; row-gap: 28px; }
+        .pipeline-step:not(:last-child)::after, .orchestration-node::after { top: auto; right: auto; bottom: -18px; left: 50%; content: "↓"; transform: translateX(-50%); }
+        .orchestration-node:not(:last-child) { margin-bottom: 10px; }
+        .try-it-section .command-table tr { display: grid; grid-template-columns: minmax(0, 44%) minmax(0, 1fr) auto; column-gap: 0; padding: 0; }
+        .try-it-section .command-table tr:first-child { border-top: 0; }
+        .try-it-section .command-table td { display: block; width: auto; padding-block: 1px; border: 0; }
+        .try-it-section .command-table td:first-child { width: auto; padding-right: 8px; }
+        .try-it-section .command-table td:nth-child(2) { padding-right: 8px; }
+        .try-it-section .command-table td:nth-child(3) { flex-basis: auto; margin-top: 0; padding-left: 4px; }
+      }
+
+    </style>
+  </head>
+  <body>
+    <header class="topbar" id="topbar">
+      <a class="brand" href="#intro" aria-label="Containers home">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 20 20" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linejoin="round"><path d="m10 2.7 6.2 3.55v7.5L10 17.3l-6.2-3.55v-7.5L10 2.7Z" fill="currentColor" fill-opacity=".12"/><path d="M3.8 6.25 10 9.8l6.2-3.55M10 9.8v7.5"/></svg></span>
+        <span class="brand-name">Containers</span>
+      </a>
+      <a class="main-site-link" href="../index.html" aria-label="Return to main website">
+        <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m2.5 7.4 5.5-4.5 5.5 4.5v5.1a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1V7.4Z"/></svg>
+        <span>Main Website</span>
+      </a>
+    </header>
+
+    <aside class="rail" aria-label="Containers sections">
+      <div class="rail-scroll">
+        <nav class="rail-group" style="--group-color: var(--blue)">
+          <a class="rail-title doc-link rail-home active" href="#intro" data-target="intro"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linejoin="round" aria-hidden="true"><path d="m8 2.15 5.1 2.9v5.9L8 13.85l-5.1-2.9v-5.9L8 2.15Z" fill="currentColor" fill-opacity=".14"/><path d="m2.9 5.05 5.1 2.9 5.1-2.9M8 7.95v5.9"/></svg>Containers</a>
+          <ul class="rail-list">
+            <li><a class="doc-link active" href="#problem" data-target="problem">Problem</a></li>
+            <li><a class="doc-link" href="#docker" data-target="docker">Docker</a></li>
+            <li><a class="doc-link" href="#history" data-target="history">History</a></li>
+            <li><a class="doc-link" href="#how-docker-works" data-target="how-docker-works">How Docker Works</a></li>
+            <li><a class="doc-link" href="#try-it-out" data-target="try-it-out">Try It Out</a></li>
+            <li><a class="doc-link" href="#data-science" data-target="data-science">Data Science</a></li>
+            <li><a class="doc-link" href="#scalability" data-target="scalability">Scalability</a></li>
+            <li><a class="doc-link" href="#conclusion" data-target="conclusion">Conclusion</a></li>
+          </ul>
+        </nav>
+      </div>
+    </aside>
+
+    <nav class="mobile-nav" aria-label="Containers sections">
+      <div class="mobile-nav-scroll">
+        <a class="doc-link active" href="#intro" data-target="intro">Containers</a>
+        <a class="doc-link" href="#problem" data-target="problem">Problem</a>
+        <a class="doc-link" href="#docker" data-target="docker">Docker</a>
+        <a class="doc-link" href="#history" data-target="history">History</a>
+        <a class="doc-link" href="#how-docker-works" data-target="how-docker-works">How Docker Works</a>
+        <a class="doc-link" href="#try-it-out" data-target="try-it-out">Try It Out</a>
+        <a class="doc-link" href="#data-science" data-target="data-science">Data Science</a>
+        <a class="doc-link" href="#scalability" data-target="scalability">Scalability</a>
+        <a class="doc-link" href="#conclusion" data-target="conclusion">Conclusion</a>
+      </div>
+    </nav>
+
+    <main class="content" id="containers">
+      <section class="section intro-section" id="intro" aria-labelledby="intro-title">
+        <div class="intro-lockup">
+          <span class="intro-mark" aria-hidden="true"><svg viewBox="0 0 20 20" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linejoin="round"><path d="m10 2.7 6.2 3.55v7.5L10 17.3l-6.2-3.55v-7.5L10 2.7Z" fill="currentColor" fill-opacity=".12"/><path d="M3.8 6.25 10 9.8l6.2-3.55M10 9.8v7.5"/></svg></span>
+          <h1 id="intro-title">Containers</h1>
+        </div>
+        <a class="scroll-cue" href="#problem" aria-label="Scroll down to the problem section">
+          <span>Scroll down</span>
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 6 8 10.5 12.5 6"/></svg>
+        </a>
+      </section>
+
+      <section class="section has-visual" id="problem" aria-labelledby="problem-title">
+        <div class="section-head"><h2 id="problem-title">Software rarely stays on the machine it was written on, and every machine is set up differently.</h2><button class="anchor" type="button" data-copy-link="problem" aria-label="Copy link to The problem">↗</button></div>
+        <p class="doc-p">Software is portable only when the environment around it is portable too.</p>
+        <div class="subsection"><div class="subsection-head"><h3>Why the mismatch happens</h3></div><p class="doc-p">An application depends on more than its source files. It depends on the operating system, language runtime, installed libraries, environment variables, file paths, and services that happen to be available on the machine where it runs.</p></div>
+        <div class="subsection"><ul class="doc-list"><li>Code moves from your laptop to teammates, test servers and the cloud</li><li>Each machine can have a different operating system, language version and libraries</li><li>So code that works on one machine breaks on another: "it works on my machine"</li><li>The bigger the system, the more pieces there are to break</li></ul></div>
+        <figure class="section-visual"><img src="images/01_environment_mismatch.png" alt="One application trying to connect to three different machine environments"></figure>
+      </section>
+
+      <section class="section has-visual" id="docker" aria-labelledby="docker-title">
+        <div class="section-head"><h2 id="docker-title">Docker is a tool for building and running containers.</h2><button class="anchor" type="button" data-copy-link="docker" aria-label="Copy link to Docker">↗</button></div>
+        <p class="doc-p">Docker packages an application with its code, libraries, settings, and start command so it can run the same way on another machine.</p>
+        <div class="subsection"><div class="subsection-head"><h3>What Docker gives you</h3></div><p class="doc-p">An image is the sealed package. A container is a running copy of that image, isolated from the rest of the machine while sharing its core operating-system kernel.</p></div>
+        <div class="subsection"><ul class="doc-list"><li>The code, libraries, and settings travel together in one package</li><li>A container is lightweight and isolated, so it starts faster than a full virtual machine</li><li>The same package can move from development to production without setting up each machine by hand</li></ul></div>
+        <figure class="section-visual"><img src="images/02_docker_portability.png" alt="One packaged application prepared to run on three different machines"></figure>
+      </section>
+
+      <section class="section has-visual" id="history" aria-labelledby="history-title">
+        <div class="section-head"><h2 id="history-title">Docker made containers easy to build, share, and run.</h2><button class="anchor" type="button" data-copy-link="history" aria-label="Copy link to History">↗</button></div>
+        <p class="doc-p">Docker's contribution was to turn operating-system isolation into a developer workflow that was simple to build, share, and run.</p>
+        <div class="subsection"><div class="subsection-head"><h3>What changed</h3></div><p class="doc-p">Linux already had namespaces, cgroups, and filesystem isolation. The hard part was making those capabilities understandable and repeatable for everyday application development. Docker connected them to a command line, a Dockerfile, images, and a registry.</p></div>
+        <div class="subsection"><ul class="doc-list"><li>Linux already had ways to isolate programs, but they were complicated</li><li>In 2013, Solomon Hykes released Docker as open source while at a company called dotCloud</li><li>In 2014, Docker 1.0 and Docker Hub launched, and the company renamed itself Docker</li><li>Today it's the standard way to package and ship software</li></ul></div>
+        <figure class="section-visual"><img src="images/06_container_history.png" alt="A three-stage progression from isolation to Docker to a registry"></figure>
+      </section>
+
+      <section class="section has-visual" id="how-docker-works" aria-labelledby="how-docker-works-title">
+        <div class="section-head"><h2 id="how-docker-works-title">Docker turns a Dockerfile into an image, then runs that image as a container.</h2><button class="anchor" type="button" data-copy-link="how-docker-works" aria-label="Copy link to How Docker works">↗</button></div>
+        <p class="doc-p">The Docker workflow separates instructions, the reusable package they produce, and the running process created from that package.</p>
+        <div class="subsection"><div class="subsection-head"><h3>Read the three stages</h3></div><p class="doc-p">The Dockerfile is plain text and can live beside the source code. Docker turns it into an image made of cached layers. The Docker engine starts one or more containers from that image, each with its own runtime state.</p></div>
+        <div class="subsection"><ul class="doc-list"><li>Dockerfile: a short text file listing the base system, libraries, code and start command</li><li>Image: a sealed, shareable package built from the Dockerfile</li><li>Container: a running copy of an image, isolated from the rest of the machine</li><li>One image can run as many containers as you need</li></ul></div>
+        <figure class="section-visual"><img src="images/03_docker_workflow.png" alt="Dockerfile becoming an image and then a running container"></figure>
+      </section>
+
+      <section class="section try-it-section" id="try-it-out" aria-labelledby="try-it-out-title">
+        <div class="section-head"><h2 id="try-it-out-title">A working setup takes only a few lines.</h2><button class="anchor" type="button" data-copy-link="try-it-out" aria-label="Copy link to Try it out">↗</button></div>
+        <p class="doc-p">The Dockerfile sets up Python, copies <code>app.py</code>, and runs it with <code>CMD</code>. Here, <code>app.py</code> contains <code>print("Hello World")</code>.</p>
+        <div class="code-card"><div class="code-bar"><span class="code-title">Dockerfile</span></div><pre style="padding:6px 12px;font-size:12px;line-height:1.25;"><code>FROM python:3.11-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+COPY . .
+CMD ["python", "app.py"]</code></pre></div>
+        <div class="subsection"><div class="subsection-head"><h3>Try it</h3></div><p class="doc-note">Run them in order: build creates the image, run starts it, and ps checks what is running.</p><table class="command-table" aria-label="Docker command sequence"><tbody><tr><td><code>docker build -t my-app .</code></td><td>Builds and tags the image as <code>my-app</code>.</td><td><button class="command-copy" type="button" data-copy="docker build -t my-app ." aria-label="Copy docker build command">copy</button></td></tr><tr><td><code>docker run -p 8000:8000 my-app</code></td><td>Starts <code>my-app</code> and maps port 8000.</td><td><button class="command-copy" type="button" data-copy="docker run -p 8000:8000 my-app" aria-label="Copy docker run command">copy</button></td></tr><tr><td><code>docker ps</code></td><td>Shows the running containers.</td><td><button class="command-copy" type="button" data-copy="docker ps" aria-label="Copy docker ps command">copy</button></td></tr></tbody></table><div class="terminal" aria-label="Simulated Docker terminal"><div class="terminal-bar"><span>containers / shell</span><span class="terminal-status" data-presentation-terminal-status>ready</span><button type="button" data-presentation-terminal-clear aria-label="Clear terminal" style="padding:4px 0;color:inherit;font:inherit;">clear</button></div><div class="terminal-output" data-presentation-terminal-output role="log" aria-live="polite" style="min-height:72px;"><div class="terminal-line terminal-muted">Type a Docker command to see simulated output.</div></div><form class="terminal-form" data-presentation-terminal-form novalidate><span class="terminal-prompt">$</span><input data-presentation-terminal-input autocomplete="off" spellcheck="false" placeholder="try: docker ps" aria-label="Terminal command" /><button type="submit">Run</button></form></div></div>
+      </section>
+
+      <section class="section has-visual" id="data-science" aria-labelledby="data-science-title">
+        <div class="section-head"><h2 id="data-science-title">In data science, Docker makes results reproducible.</h2><button class="anchor" type="button" data-copy-link="data-science" aria-label="Copy link to Docker in data science">↗</button></div>
+        <p class="doc-p">A data-science result is easier to trust when the code, libraries, system packages, and model-serving command can all be reproduced.</p>
+        <div class="subsection"><div class="subsection-head"><h3>What reproducibility means here</h3></div><p class="doc-p">Docker does not guarantee that a model is accurate. It records enough of the runtime environment that another person can rerun the same notebook or service with the same dependency versions and compare the result.</p></div>
+        <div class="subsection"><ul class="doc-list"><li>The same library versions mean the same model results on any machine</li><li>Teammates can run your notebook or model without setup problems</li><li>The same container moves from experiment to production unchanged</li><li>It's easy to try a new library version without breaking your main setup</li></ul></div>
+        <figure class="section-visual"><img src="images/04_data_science_reproducibility.png" alt="Two machines running the same model and producing identical results"></figure>
+      </section>
+
+      <section class="section has-visual" id="scalability" aria-labelledby="scalability-title">
+        <div class="section-head"><h2 id="scalability-title">With Kubernetes, containers scale to large systems.</h2><button class="anchor" type="button" data-copy-link="scalability" aria-label="Copy link to Scalability and orchestration">↗</button></div>
+        <p class="doc-p">Scaling means running more copies of a service while keeping traffic, health, and placement under control.</p>
+        <div class="subsection"><div class="subsection-head"><h3>What orchestration adds</h3></div><p class="doc-p">Kubernetes watches a desired state and compares it with what is actually running. It places containers on available machines, routes requests to healthy copies, restarts failed copies, and gradually replaces versions during an update.</p></div>
+        <div class="subsection"><ul class="doc-list"><li>Need to handle more users? Run more copies of the same container</li><li>Kubernetes manages containers across many machines</li><li>It starts them, restarts any that fail, and spreads the load evenly</li><li>Docker packages each service; Kubernetes runs them at scale</li></ul></div>
+        <figure class="section-visual"><img src="images/05_kubernetes_scaling.png" alt="A control container distributing application containers across three nodes"></figure>
+      </section>
+
+      <section class="section" id="conclusion" aria-labelledby="conclusion-title">
+        <div class="section-head"><h2 id="conclusion-title">Docker turns "works on my machine" into "works on every machine."</h2><button class="anchor" type="button" data-copy-link="conclusion" aria-label="Copy link to Conclusion">↗</button></div>
+        <p class="doc-p">The path from laptop to production becomes easier to reason about when packaging, execution, and scaling are separate steps.</p>
+        <div class="subsection"><div class="subsection-head"><h3>What to remember</h3></div><p class="doc-p">Docker packages an application with its environment. Containers make that package runnable and repeatable. Kubernetes coordinates many containers so a service can keep operating as demand and machine health change.</p></div>
+        <div class="subsection"><ul class="doc-list"><li>Software has to run on many machines, and different setups break it</li><li>Docker packages the app with its environment, so it runs the same everywhere</li><li>Kubernetes takes those containers and scales them across large systems</li><li>Takeaway: if your project will ever leave your laptop, put it in a container</li></ul></div>
+      </section>
+
+      <footer class="endnote"><a href="#intro">Back to top ↑</a></footer>
+
+      <script>
+        (() => {
+          const output = document.querySelector("[data-presentation-terminal-output]");
+          const form = document.querySelector("[data-presentation-terminal-form]");
+          const input = document.querySelector("[data-presentation-terminal-input]");
+          const clear = document.querySelector("[data-presentation-terminal-clear]");
+          const status = document.querySelector("[data-presentation-terminal-status]");
+          const history = [];
+          let historyIndex = 0;
+          let runToken = 0;
+          const buildCommand = "docker build -t my-app .";
+          const runCommand = "docker run -p 8000:8000 my-app";
+          const psCommand = "docker ps";
+          input.value = buildCommand;
+
+          const appendLine = (text, muted = true) => {
+            const line = document.createElement("div");
+            line.className = `terminal-line${muted ? " terminal-muted" : ""}`;
+            line.textContent = text;
+            output.append(line);
+            output.scrollTop = output.scrollHeight;
+          };
+
+          const responseFor = (command) => {
+            if (command === buildCommand) return [
+              "[+] Building 2.1s (6/6) FINISHED",
+              " => [internal] load build definition from Dockerfile",
+              " => [internal] load metadata for docker.io/library/python:3.11-slim",
+              " => [3/6] RUN pip install -r requirements.txt",
+              " => exporting to image",
+              "Successfully tagged my-app:latest",
+            ];
+            if (command === runCommand) return ["Hello World"];
+            if (command === psCommand) return ["CONTAINER ID   IMAGE    COMMAND        STATUS        PORTS", "a1b2c3d4e5f6   my-app   \"python app.py\"   Up 12 seconds   0.0.0.0:8000->8000/tcp"];
+            return ["command not found"];
+          };
+
+          const submit = (event) => {
+            event?.preventDefault();
+            const command = input.value.trim();
+            if (!command) return;
+            history.push(command);
+            historyIndex = history.length;
+            runToken += 1;
+            const token = runToken;
+            appendLine(`$ ${command}`, false);
+            input.value = "";
+            status.textContent = "running";
+            const lines = responseFor(command);
+            lines.forEach((line, index) => window.setTimeout(() => {
+              if (token !== runToken) return;
+              appendLine(line);
+              if (index === lines.length - 1) {
+                status.textContent = "ready";
+                input.value = command === buildCommand ? runCommand : command === runCommand ? psCommand : "";
+              }
+            }, 220 * (index + 1)));
+          };
+
+          form?.addEventListener("submit", submit);
+          input?.addEventListener("keydown", (event) => {
+            if (event.key !== "ArrowUp" || !history.length) return;
+            event.preventDefault();
+            historyIndex = Math.max(0, historyIndex - 1);
+            input.value = history[historyIndex];
+          });
+          clear?.addEventListener("click", () => { runToken += 1; output.replaceChildren(); status.textContent = "ready"; input.value = buildCommand; input.focus(); });
+        })();
+      </script>
+
+    </main>
+
+    <script>
+      const topbar = document.querySelector(".topbar");
+      const content = document.querySelector(".content");
+      const links = [...document.querySelectorAll(".doc-link")];
+      const railLists = [...document.querySelectorAll(".rail-list")];
+      const sections = [...document.querySelectorAll(".section")];
+      const railRadius = 6;
+      let navigationLockUntil = 0;
+      let navigationTargetId = "";
+      let navigationTimer = 0;
+
+      const copyText = async (value, button) => {
+        try { await navigator.clipboard.writeText(value); } catch (_) { const input = document.createElement("textarea"); input.value = value; document.body.appendChild(input); input.select(); document.execCommand("copy"); input.remove(); }
+        const originalLabel = button.textContent;
+        button.textContent = "Copied";
+        window.setTimeout(() => { button.textContent = originalLabel; }, 1200);
+      };
+
+      const setActive = (id) => {
+        document.body.classList.toggle("intro-mode", id === "intro");
+        links.forEach((link) => link.classList.toggle("active", link.dataset.target === id));
+        railLists.forEach((list) => {
+          list.dataset.live = "true";
+          const current = list.querySelector(`.doc-link[data-target="${id}"]`);
+          list.querySelectorAll("li").forEach((item) => item.classList.toggle("current", Boolean(current && item.contains(current))));
+          const item = current?.closest("li");
+          const radiusStart = item ? item.offsetTop + item.offsetHeight / 2 - railRadius : 0;
+          const reach = item ? (radiusStart + 2) / (list.offsetHeight + 2) : 0;
+          list.style.setProperty("--reach", Math.max(0, Math.min(1, reach)).toFixed(3));
+        });
+      };
+
+      const goToSection = (target) => {
+        if (!target) return;
+        if (navigationTimer) window.clearTimeout(navigationTimer);
+        history.replaceState(null, "", `#${target.id}`);
+        setActive(target.id);
+        navigationTargetId = target.id;
+        navigationLockUntil = performance.now() + 1400;
+        target.scrollIntoView({ behavior: "auto", block: "start" });
+        navigationTimer = window.setTimeout(() => {
+          navigationLockUntil = 0;
+          navigationTargetId = "";
+          navigationTimer = 0;
+          updateScrollActive();
+        }, 1600);
+      };
+
+      links.forEach((link) => link.addEventListener("click", (event) => {
+        event.preventDefault();
+        goToSection(document.getElementById(link.dataset.target));
+      }));
+
+      document.addEventListener("keydown", (event) => {
+        const target = event.target;
+        if (target instanceof HTMLElement && (target.matches("input, textarea, select, button, a, [contenteditable='true']") || target.isContentEditable)) return;
+        const direction = event.key === "ArrowDown" || event.key === "ArrowRight" ? 1 : event.key === "ArrowUp" || event.key === "ArrowLeft" ? -1 : 0;
+        if (!direction) return;
+        const activeId = document.querySelector(".doc-link.active")?.dataset.target;
+        const currentIndex = sections.findIndex((section) => section.id === activeId);
+        const targetSection = sections[currentIndex + direction];
+        if (!targetSection) return;
+        event.preventDefault();
+        goToSection(targetSection);
+      });
+
+      document.querySelectorAll("[data-copy]").forEach((button) => button.addEventListener("click", () => copyText(button.dataset.copy, button)));
+      document.querySelectorAll("[data-copy-link]").forEach((button) => button.addEventListener("click", () => {
+        const id = button.dataset.copyLink;
+        history.replaceState(null, "", `#${id}`);
+        copyText(`${location.origin}${location.pathname}#${id}`, button);
+      }));
+
+      const updateScrollActive = () => {
+        if (navigationTargetId) {
+          const target = document.getElementById(navigationTargetId);
+          const targetOffset = target ? target.getBoundingClientRect().top - topbar.getBoundingClientRect().height : 0;
+          if (Math.abs(targetOffset) > 8 && performance.now() < navigationLockUntil) return;
+          navigationTargetId = "";
+          navigationLockUntil = 0;
+        }
+        if (performance.now() < navigationLockUntil) return;
+        if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 8) {
+          setActive(sections[sections.length - 1].id);
+          return;
+        }
+        const readingAnchor = Math.max(120, Math.min(220, window.innerHeight * .36));
+        let current = sections[0];
+        sections.forEach((section) => { if (section.getBoundingClientRect().top <= readingAnchor) current = section; });
+        if (current) setActive(current.id);
+      };
+      window.addEventListener("scroll", updateScrollActive, { passive: true });
+
+      const updateScrollCue = () => document.body.classList.toggle("intro-scrolled", window.scrollY > 8);
+      window.addEventListener("scroll", updateScrollCue, { passive: true });
+
+      const first = location.hash.slice(1);
+      setActive(sections.some((section) => section.id === first) ? first : sections[0].id);
+      if (first && document.getElementById(first)) window.setTimeout(() => document.getElementById(first).scrollIntoView({ block: "start" }), 0);
+      updateScrollActive();
+      updateScrollCue();
+      window.addEventListener("resize", updateScrollActive, { passive: true });
+      window.addEventListener("scroll", () => topbar.classList.toggle("scrolled", window.scrollY > 8), { passive: true });
+    </script>
+  </body>
+</html>

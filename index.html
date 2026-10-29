@@ -666,6 +666,18 @@
       margin-bottom: 14px;
     }
 
+    .project-title-link {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .project-title-link:hover,
+    .project-title-link:focus-visible {
+      text-decoration: underline;
+      text-decoration-thickness: 2px;
+      text-underline-offset: 4px;
+    }
+
     .project-copy {
       position: relative;
       z-index: 2;
@@ -697,6 +709,11 @@
       background: #ffffff;
     }
 
+    .container-project-image {
+      object-fit: cover;
+      object-position: center;
+    }
+
     .tag-list {
       display: flex;
       flex-wrap: wrap;
@@ -715,6 +732,30 @@
       color: var(--muted);
       font-size: 0.78rem;
       font-weight: 650;
+    }
+
+    .tag-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .youtube-icon {
+      width: 14px;
+      height: 14px;
+      flex: 0 0 auto;
+      color: #ff0000;
+    }
+
+    .tag-link:hover,
+    .tag-link:focus-visible {
+      border-color: var(--line-strong);
+      color: var(--ink);
+      transform: translateY(-1px);
+      outline: none;
     }
 
     /* =========================
@@ -772,6 +813,35 @@
     .resume-dialog::backdrop {
       background: rgba(0, 0, 0, 0.62);
       backdrop-filter: blur(4px);
+    }
+
+    .video-dialog {
+      width: min(960px, calc(100% - 28px));
+      margin: auto;
+      padding: 0;
+      border: 1px solid var(--line-strong);
+      border-radius: 18px;
+      background: #ffffff;
+      box-shadow: 0 30px 90px rgba(0, 0, 0, 0.28);
+      overflow: hidden;
+    }
+
+    .video-dialog::backdrop {
+      background: rgba(0, 0, 0, 0.62);
+      backdrop-filter: blur(4px);
+    }
+
+    .video-frame-wrap {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #000000;
+    }
+
+    .video-frame {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
     }
 
     .resume-modal-header {
@@ -1119,9 +1189,9 @@
     <section class="section wrap" id="projects">
       <div class="section-header">
         <span class="eyebrow">Featured Projects</span>
-        <h2 class="section-title">Energy forecasting and maritime computer vision.</h2>
+        <h2 class="section-title">Energy forecasting, maritime computer vision, and technical explainers.</h2>
         <p class="section-copy">
-          My main projects connect structured data pipelines, practical AI systems, and clear technical evaluation.
+          My featured work combines applied data science with clear explanations of the technical systems that shape how modern tools work.
         </p>
       </div>
 
@@ -1150,6 +1220,17 @@
             <span class="tag">Energy Markets</span>
             <span class="tag">Forecasting</span>
             <span class="tag">Market Signals</span>
+            <button
+              type="button"
+              class="tag tag-link open-video"
+              data-video-url="https://www.youtube.com/embed/6vtqCu_4zSc?autoplay=1&amp;rel=0"
+              data-video-title="WTI Oil Price Direction Forecasting"
+            >
+              <svg class="youtube-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="currentColor" d="M23.498 6.186a2.996 2.996 0 0 0-2.106-2.106C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.392.58A2.996 2.996 0 0 0 .502 6.186 31.2 31.2 0 0 0 0 12a31.2 31.2 0 0 0 .502 5.814 2.996 2.996 0 0 0 2.106 2.106c1.887.58 9.392.58 9.392.58s7.505 0 9.392-.58a2.996 2.996 0 0 0 2.106-2.106A31.2 31.2 0 0 0 24 12a31.2 31.2 0 0 0-.502-5.814zM9.6 15.5v-7l6.4 3.5-6.4 3.5z" />
+              </svg>
+              Watch WTI Explanation
+            </button>
           </div>
         </article>
 
@@ -1176,6 +1257,43 @@
             <span class="tag">Port Monitoring</span>
             <span class="tag">Object Detection</span>
             <span class="tag">Maritime Awareness</span>
+          </div>
+        </article>
+
+        <article class="project-card">
+          <div class="project-topline">
+            <div>
+              <p class="project-type">Educational Guide · Technology Concepts</p>
+              <h3><a class="project-title-link" href="container-guide/containers.html">Understanding Containers: Docker and Kubernetes</a></h3>
+            </div>
+          </div>
+
+          <div class="project-copy">
+            <p>
+              Containers package an application with the files it needs, so it runs consistently across different environments. This guide uses a shipping container analogy to make the idea easy to understand.
+            </p>
+            <p>
+              Docker builds and runs containers. Kubernetes coordinates many containers, helping applications scale, stay connected, and recover when one stops.
+            </p>
+          </div>
+
+          <img class="project-image container-project-image" src="assets/images/project-containerization.png" alt="Industrial containerization and logistics visualization with storage tanks, a tanker, and analytics displays" />
+
+          <div class="tag-list">
+            <span class="tag">Containers 101</span>
+            <span class="tag">Docker</span>
+            <span class="tag">Kubernetes</span>
+            <button
+              type="button"
+              class="tag tag-link open-video"
+              data-video-url="https://www.youtube.com/embed/DXYbx8Rebrc?autoplay=1&amp;rel=0"
+              data-video-title="Understanding Containers: Docker and Kubernetes"
+            >
+              <svg class="youtube-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="currentColor" d="M23.498 6.186a2.996 2.996 0 0 0-2.106-2.106C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.392.58A2.996 2.996 0 0 0 .502 6.186 31.2 31.2 0 0 0 0 12a31.2 31.2 0 0 0 .502 5.814 2.996 2.996 0 0 0 2.106 2.106c1.887.58 9.392.58 9.392.58s7.505 0 9.392-.58a2.996 2.996 0 0 0 2.106-2.106A31.2 31.2 0 0 0 24 12a31.2 31.2 0 0 0-.502-5.814zM9.6 15.5v-7l6.4 3.5-6.4 3.5z" />
+              </svg>
+              Watch Containers Explanation
+            </button>
           </div>
         </article>
       </div>
@@ -1245,6 +1363,23 @@
       src="assets/docs/resume.pdf#toolbar=0&navpanes=0&scrollbar=1&view=FitH&zoom=108"
       title="Resume PDF"
     ></iframe>
+  </dialog>
+
+  <dialog class="video-dialog" id="videoDialog" aria-labelledby="videoTitle">
+    <div class="resume-modal-header">
+      <h3 id="videoTitle">Video</h3>
+      <button type="button" class="btn btn-secondary" id="closeVideo">Close</button>
+    </div>
+    <div class="video-frame-wrap">
+      <iframe
+        class="video-frame"
+        id="videoFrame"
+        src="about:blank"
+        title="Featured project video"
+        allow="autoplay; encrypted-media; picture-in-picture"
+        allowfullscreen
+      ></iframe>
+    </div>
   </dialog>
 
   <footer class="footer">
@@ -1393,6 +1528,11 @@
     const cadscomAwardCard = document.getElementById("cadscomAwardCard");
     const openCadscomAward = document.getElementById("openCadscomAward");
     const closeAwardPoster = document.getElementById("closeAwardPoster");
+    const videoDialog = document.getElementById("videoDialog");
+    const openVideoButtons = document.querySelectorAll(".open-video");
+    const closeVideo = document.getElementById("closeVideo");
+    const videoFrame = document.getElementById("videoFrame");
+    const videoTitle = document.getElementById("videoTitle");
 
     openResume?.addEventListener("click", () => {
       if (typeof resumeDialog.showModal === "function") {
@@ -1414,6 +1554,39 @@
     resumeDialog?.addEventListener("click", (event) => {
       if (event.target === resumeDialog) {
         resumeDialog.close();
+      }
+    });
+
+    openVideoButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const videoUrl = button.dataset.videoUrl;
+        const title = button.dataset.videoTitle;
+        if (!videoDialog || !videoFrame || !videoUrl) return;
+
+        if (typeof videoDialog.showModal === "function") {
+          videoTitle.textContent = title || "Featured project video";
+          videoFrame.src = videoUrl;
+          videoDialog.showModal();
+          return;
+        }
+
+        window.open(videoUrl, "_blank", "noopener,noreferrer");
+      });
+    });
+
+    closeVideo?.addEventListener("click", () => {
+      videoDialog?.close();
+    });
+
+    videoDialog?.addEventListener("click", (event) => {
+      if (event.target === videoDialog) {
+        videoDialog.close();
+      }
+    });
+
+    videoDialog?.addEventListener("close", () => {
+      if (videoFrame) {
+        videoFrame.src = "about:blank";
       }
     });
 
