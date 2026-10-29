@@ -714,6 +714,163 @@
       object-position: center;
     }
 
+    .matching-visual {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 22px;
+      overflow: hidden;
+      background: #f7f7f5;
+    }
+
+    .matching-visual::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.45;
+      background-image: radial-gradient(#d5d5d0 0.7px, transparent 0.7px);
+      background-size: 15px 15px;
+      mask-image: linear-gradient(135deg, black, transparent 72%);
+    }
+
+    .matching-visual > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .matching-visual-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 0.68rem;
+      font-weight: 850;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .matching-visual-label span:last-child {
+      color: #a0a09b;
+      letter-spacing: 0.08em;
+    }
+
+    .matching-flow {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr auto 1fr;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .matching-stage {
+      min-height: 136px;
+      padding: 14px 12px;
+      border: 1px solid #deded9;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.86);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.04);
+    }
+
+    .matching-stage strong,
+    .matching-stage small {
+      display: block;
+    }
+
+    .matching-stage strong {
+      margin-bottom: 5px;
+      font-size: 0.84rem;
+    }
+
+    .matching-stage small {
+      color: var(--muted);
+      font-size: 0.68rem;
+      line-height: 1.45;
+    }
+
+    .matching-engine {
+      border-color: #111111;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
+    }
+
+    .matching-engine-icon {
+      display: grid;
+      width: 32px;
+      height: 32px;
+      margin-bottom: 12px;
+      place-items: center;
+      border-radius: 10px;
+      background: #111111;
+      color: #ffffff;
+      font-size: 1rem;
+    }
+
+    .matching-arrow {
+      color: #999994;
+      font-size: 1.15rem;
+    }
+
+    .order-stack,
+    .distributed-nodes {
+      display: grid;
+      gap: 5px;
+      margin-top: 10px;
+    }
+
+    .order-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+    }
+
+    .order-row span,
+    .distributed-nodes span {
+      display: block;
+      padding: 4px 5px;
+      border-radius: 5px;
+      background: #f0f0ec;
+      color: #777772;
+      font: 0.62rem/1 GeistMono, Consolas, monospace;
+      text-align: center;
+    }
+
+    .order-row span:first-child {
+      color: #4f7a59;
+    }
+
+    .order-row span:last-child {
+      color: #a25e58;
+    }
+
+    .distributed-nodes {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .distributed-nodes span:last-child {
+      grid-column: 1 / -1;
+      width: 64%;
+    }
+
+    .trade-pill {
+      display: inline-flex;
+      margin-top: 14px;
+      padding: 5px 7px;
+      border-radius: 999px;
+      background: #eaf4ec;
+      color: #4f7a59;
+      font: 0.6rem/1 GeistMono, Consolas, monospace;
+      letter-spacing: 0.04em;
+    }
+
+    .matching-visual-caption {
+      max-width: 470px;
+      color: #777772;
+      font-size: 0.78rem;
+      line-height: 1.5;
+    }
+
     .tag-list {
       display: flex;
       flex-wrap: wrap;
@@ -949,6 +1106,38 @@
 
       .project-image {
         height: 235px;
+      }
+
+      .matching-visual {
+        height: auto;
+        min-height: 420px;
+      }
+
+      .matching-visual-label {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .matching-flow {
+        grid-template-columns: 1fr;
+        gap: 7px;
+      }
+
+      .matching-stage {
+        min-height: 78px;
+        padding: 11px;
+      }
+
+      .matching-engine-icon {
+        width: 28px;
+        height: 28px;
+        margin-bottom: 8px;
+      }
+
+      .matching-arrow {
+        justify-self: center;
+        transform: rotate(90deg);
       }
 
       .resume-dialog {
@@ -1189,7 +1378,7 @@
     <section class="section wrap" id="projects">
       <div class="section-header">
         <span class="eyebrow">Featured Projects</span>
-        <h2 class="section-title">Energy forecasting, maritime computer vision, and technical explainers.</h2>
+        <h2 class="section-title">Energy, maritime, trading systems, and technical explainers.</h2>
         <p class="section-copy">
           My featured work combines applied data science with clear explanations of the technical systems that shape how modern tools work.
         </p>
@@ -1294,6 +1483,64 @@
               </svg>
               Watch Containers Explanation
             </button>
+          </div>
+        </article>
+
+        <article class="project-card">
+          <div class="project-topline">
+            <div>
+              <p class="project-type">Trading Systems · Distributed Systems</p>
+              <h3>Distributed Simulated Exchange</h3>
+            </div>
+          </div>
+
+          <div class="project-copy">
+            <p>
+              An educational exchange simulator with six synthetic participants and three price-time order books. The matching engine processes market, limit, stop, partial-fill, and cancellation orders.
+            </p>
+            <p>
+              Kafka routes events while MySQL stores trades, Cassandra stores history, HDFS archives records, and Streamlit shows the distributed system in motion.
+            </p>
+          </div>
+
+          <div class="project-image matching-visual" role="img" aria-label="Diagram showing buy and sell orders entering a trading matching engine and being distributed across multiple nodes">
+            <div class="matching-visual-label">
+              <span>Market infrastructure</span>
+              <span>Price-time priority · Fault tolerance</span>
+            </div>
+
+            <div class="matching-flow" aria-hidden="true">
+              <div class="matching-stage">
+                <strong>Order book</strong>
+                <small>Buy / sell orders</small>
+                <div class="order-stack">
+                  <div class="order-row"><span>BUY 101.20</span><span>SELL 101.20</span></div>
+                  <div class="order-row"><span>BUY 101.10</span><span>SELL 101.30</span></div>
+                  <div class="order-row"><span>BUY 101.00</span><span>SELL 101.40</span></div>
+                </div>
+              </div>
+              <span class="matching-arrow">→</span>
+              <div class="matching-stage matching-engine">
+                <span class="matching-engine-icon">↔</span>
+                <strong>Match</strong>
+                <small>Price + time priority</small>
+                <span class="trade-pill">TRADE EXECUTED</span>
+              </div>
+              <span class="matching-arrow">→</span>
+              <div class="matching-stage">
+                <strong>Distribute</strong>
+                <small>Replicas + event log</small>
+                <div class="distributed-nodes"><span>NODE A</span><span>NODE B</span><span>EVENT LOG</span></div>
+              </div>
+            </div>
+
+            <p class="matching-visual-caption">Fast decisions at the center. Durable events keep the system consistent across machines.</p>
+          </div>
+
+          <div class="tag-list">
+            <span class="tag">Price-Time Matching</span>
+            <span class="tag">Kafka</span>
+            <span class="tag">Distributed Storage</span>
           </div>
         </article>
       </div>
