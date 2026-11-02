@@ -651,7 +651,13 @@
       z-index: 2;
     }
 
+    .project-topline > div {
+      width: 100%;
+    }
+
     .project-type {
+      padding-right: 155px;
+      min-height: 2.8em;
       font-size: 0.78rem;
       font-weight: 800;
       letter-spacing: 0.12em;
@@ -707,6 +713,69 @@
       display: block;
       overflow: hidden;
       background: #ffffff;
+    }
+
+    .exchange-visual {
+      display: grid;
+      place-items: center;
+      background: radial-gradient(ellipse at 48% 38%, #ffffff 0%, #f8f8f8 72%, #eeeeef 100%);
+    }
+
+    #exchange-animation {
+      --hairline-stroke: 0.65;
+      --hairline-edge: #85878a;
+      --hairline-lo: #b3b5b7;
+      --hairline-hi: #d94b38;
+    }
+
+    #exchange-animation svg .sil {
+      fill: url(#exchange-side);
+      stroke: #85878a;
+    }
+
+    #exchange-animation svg .surface-side {
+      fill: url(#exchange-face);
+      stroke: #a3a6a9;
+      stroke-width: 0.45;
+    }
+
+    #exchange-animation svg .surface-top {
+      fill: url(#exchange-top);
+      stroke: #bfc1c3;
+      stroke-width: 0.45;
+    }
+
+    #exchange-animation svg .machine-base .surface-top {
+      fill: url(#exchange-bed);
+    }
+
+    #exchange-animation svg .order-block .sil {
+      filter: drop-shadow(0 0.75px 0.3px rgb(25 27 30 / 24%));
+    }
+
+    #exchange-animation svg .machine-shadow {
+      fill: url(#exchange-shadow);
+      stroke: none;
+    }
+
+    #exchange-animation svg .hi {
+      stroke: #d94b38;
+    }
+
+    #exchange-animation svg .match-top {
+      stroke: #d94b38;
+      stroke-width: 0.8;
+    }
+
+    .exchange-animation {
+      width: min(100%, 350px);
+      aspect-ratio: 5 / 4;
+    }
+
+    .build-status {
+      cursor: default;
+      animation: none;
+      box-shadow: none;
     }
 
     .container-project-image {
@@ -949,6 +1018,10 @@
 
       .project-image {
         height: 235px;
+      }
+
+      .exchange-animation {
+        width: min(100%, 293.75px);
       }
 
       .resume-dialog {
@@ -1207,10 +1280,7 @@
 
           <div class="project-copy">
             <p>
-              This project explores whether weekly WTI crude oil price direction can be modeled from a structured mix of energy-market, macroeconomic, and financial indicators.
-            </p>
-            <p>
-              The emphasis is on building a clean forecasting pipeline: align the data, engineer meaningful market signals, preserve time order, and evaluate model behavior carefully.
+              This project explores whether weekly WTI crude oil price direction can be modeled from energy-market, macroeconomic, and financial indicators. The forecasting pipeline aligns data and engineers meaningful market signals while preserving time order. Model evaluation examines how those signals contribute to directional forecasts.
             </p>
           </div>
 
@@ -1244,10 +1314,7 @@
 
           <div class="project-copy">
             <p>
-              This project applies computer vision to port monitoring using overhead imagery, with the goal of detecting cargo vessels as operational signals for maritime activity.
-            </p>
-            <p>
-              The focus is the full detection workflow: collect port imagery, label ships, train an object detection model, and communicate how visual monitoring supports maritime awareness.
+              This project applies computer vision to overhead port imagery to detect cargo vessels as signals of maritime activity. The workflow covers collecting imagery, labeling ships, and training an object detection model. The results show how visual monitoring can support port operations and maritime awareness.
             </p>
           </div>
 
@@ -1270,10 +1337,7 @@
 
           <div class="project-copy">
             <p>
-              Containers package an application with the files it needs, so it runs consistently across different environments. This guide uses a shipping container analogy to make the idea easy to understand.
-            </p>
-            <p>
-              Docker builds and runs containers. Kubernetes coordinates many containers, helping applications scale, stay connected, and recover when one stops.
+              Containers package an application with the files it needs to run consistently across environments. This guide uses a shipping container analogy to explain how Docker builds and runs containers. It then introduces Kubernetes as a way to coordinate containers, scale applications, and recover when a service stops.
             </p>
           </div>
 
@@ -1297,24 +1361,24 @@
           </div>
         </article>
 
-        <article class="project-card">
+        <article class="project-card exchange-card">
+          <span class="award-link-btn build-status">Build in progress</span>
           <div class="project-topline">
             <div>
               <p class="project-type">Trading Systems · Distributed Systems</p>
-              <h3>Distributed Simulated Exchange</h3>
+              <h3>Distributed Matching Engine System</h3>
             </div>
           </div>
 
           <div class="project-copy">
             <p>
-              This project explores how a trading matching engine brings buy and sell orders together through an order book and price-time matching.
-            </p>
-            <p>
-              It also examines how distributed systems process market activity quickly and reliably across multiple services.
+              This project explores a distributed matching engine that pairs buy and sell orders through an order book using price-time priority. The design examines how multiple services coordinate order processing and market activity. Kafka and distributed storage support the exploration of event-driven communication and reliable system state.
             </p>
           </div>
 
-          <img class="project-image" src="assets/images/project-matching-engine.png" alt="Grayscale visualization of a central trading order book and matching engine connected to distributed system nodes" />
+          <div class="project-image exchange-visual">
+            <div class="exchange-animation" id="exchange-animation" data-hairline="fuse" data-hairline-theme="light" role="img" aria-label="Animated buy and sell orders merge on three exchange levels. Hover or touch a level to slow its motion and highlight the matching orders."></div>
+          </div>
 
           <div class="tag-list">
             <span class="tag">Price-Time Matching</span>
@@ -1412,6 +1476,8 @@
     <p>© 2026 Aarambh Shrestha</p>
     <p>Data Science · AI · QA Engineering</p>
   </footer>
+
+  <script src="assets/js/exchange-animation.js" defer></script>
 
   <script>
     const heroImages = [
