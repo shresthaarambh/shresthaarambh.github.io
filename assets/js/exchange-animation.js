@@ -1,4 +1,4 @@
-// Adapted from hairline-fuse.html: original motion and hit testing, shaded industrial surfaces.
+// Original hairline-fuse animation; standalone demo controls omitted.
 (() => {
 
 /* hairline kernel sha256:346b48bdef2cdfafd5343eba01494255cf75f9c078e6fcd1aafc62bab62980a1 */
@@ -242,12 +242,8 @@ var HL = (() => {
     return out;
   }
   function prism(P, front, ring, inner, z0, z1) {
-    // A separate vertical face gives each block a crisp lit/shaded corner.
-    const side = run(ring, (q) => front(q) && q.nu >= 0.001);
     return {
-      side: side.length > 1 ? poly(ringAt(P, side, z1).concat(ringAt(P, side, z0).reverse())) : "",
       sil: poly(hull(ringAt(P, ring, z1).concat(ringAt(P, ring, z0)))),
-      top: poly(ringAt(P, ring, z1)),
       crease: inner ? open(ringAt(P, run(inner, front), z1)) : ""
     };
   }
@@ -370,12 +366,10 @@ var HL = (() => {
   }
   function solid(parent) {
     const g = mk("g", {}, parent);
-    return { g, sil: mk("path", { class: "sil" }, g), side: mk("path", { class: "surface-side" }, g), top: mk("path", { class: "surface-top" }, g), cr: mk("path", { class: "nf lo" }, g) };
+    return { g, sil: mk("path", { class: "sil" }, g), cr: mk("path", { class: "nf lo" }, g) };
   }
   var put = (el, s) => {
     el.sil.setAttribute("d", s.sil);
-    el.top.setAttribute("d", s.top || "");
-    el.side.setAttribute("d", s.side || "");
     el.cr.setAttribute("d", s.crease);
   };
   var flatDot = (parent, C, r, cls) => mk("ellipse", { rx: r2(r * C.S), ry: r2(r * C.S * C.k), class: cls }, parent);
@@ -754,23 +748,13 @@ function mount({ stage, svg, read }, value) {
   fit(C, [[-E - HOOD, -BW * 1.5, 0], [E + HOOD, BW * 1.5, 0], [E + HOOD, -BW * 1.5, 0], [-E - HOOD, BW * 1.5, 0],
     [-E - HOOD, -BW * 1.5, BT + 2 * SZ + HH], [0, -BW, BT + 2 * SZ + R + H]], 200, 166);
   const P = proj(C), front = facing(C);
-  // A softly grounded machine bed, behind the original three moving levels.
-  mk("ellipse", { cx: 200, cy: 229, rx: 134, ry: 35, class: "machine-shadow" }, svg);
-  const g = mk("g", { class: "machine" }, svg);
-  const [baseRing, baseInner] = rings(-101, -40, 101, 40, 4, 1.5);
-  const base = solid(g);
-  base.g.setAttribute("class", "machine-base");
-  put(base, prism(P, front, baseRing, baseInner, -7, -2));
+  const g = mk("g", {}, svg);
   const slab = (x0, y0, x1, y1, z1, par) => {
     const [ring, inner] = rings(x0, y0, x1, y1, 2.5, 1.2), s = solid(par || g);
     put(s, prism(P, front, ring, inner, 0, z1));
     return s;
   };
-  const piece = () => {
-    const s = solid(g);
-    s.g.setAttribute("class", "order-block");
-    return { s, hi: false };
-  };
+  const piece = () => ({ s: solid(g), hi: false });
 
   // far level first. Each level: hood, belt and orders on the ask side, the fused box, belt, orders and hood on the bid side
   const levels = [];
@@ -787,7 +771,7 @@ function mount({ stage, svg, read }, value) {
     levels.push(lv);
   }
 
-  const lit = (o, v) => { if (o.hi !== v) { o.hi = v; o.s.sil.classList.toggle("hi", v); o.s.top.classList.toggle("match-top", v); } };
+  const lit = (o, v) => { if (o.hi !== v) { o.hi = v; o.s.sil.classList.toggle("hi", v); } };
 
   function draw() {
     if (clock === last) return;
@@ -804,7 +788,7 @@ function mount({ stage, svg, read }, value) {
         lv.box[s].forEach((b, j) => {
           const xc = HW + (j + 1 - a) * D, lo = xc - HW, hi = Math.min(xc + HW, E);
           if ((j === 0 && fz) || hi - lo < 3) return put(b.s, EMPTY);
-          const [ring, inner] = rings(s > 0 ? lo : -hi, y0, s > 0 ? hi : -lo, y1, 0.65, 0.35);
+          const [ring, inner] = rings(s > 0 ? lo : -hi, y0, s > 0 ? hi : -lo, y1, 2.2, 1);
           put(b.s, prism(P, front, ring, inner, zt, zt + H));
         });
       }
@@ -812,7 +796,7 @@ function mount({ stage, svg, read }, value) {
       // the fused box rises on the lift curve and its tail catches its top
       const q = fz ? (tau - TA - TH) / TR : 2, zc = zt + R * ease(clamp(q, 0, 1)), top = zc + H, bot = zc + H * sm((q - 0.5) * 2);
       const show = q >= 0 && q < 1 && top - bot > 0.8;
-      if (show) { const [ring, inner] = rings(-2 * HW, y0, 2 * HW, y1, 0.8, 0.4); put(lv.F.s, prism(P, front, ring, inner, bot, top)); }
+      if (show) { const [ring, inner] = rings(-2 * HW, y0, 2 * HW, y1, 2.6, 1.1); put(lv.F.s, prism(P, front, ring, inner, bot, top)); }
       else put(lv.F.s, EMPTY);
       // the bright: the match just made; or, under the pointer, the head of the level it is over
       const on = sel < 0 || sel === lv.l;
@@ -859,19 +843,7 @@ function mount({ stage, svg, read }, value) {
   if (!stage) return;
   HL.inject(document);
   const svg = HL.mk("svg", { viewBox: "0 0 400 320", "aria-hidden": "true" }, stage);
-  const defs = HL.mk("defs", {}, svg);
-  const gradient = (id, stops, attrs = {}) => {
-    const node = HL.mk("linearGradient", { id, x1: "0%", y1: "0%", x2: "85%", y2: "100%", ...attrs }, defs);
-    stops.forEach(([offset, color]) => HL.mk("stop", { offset, "stop-color": color }, node));
-  };
-  gradient("exchange-side", [["0%", "#ffffff"], ["45%", "#f1f1f2"], ["100%", "#dadbdd"]]);
-  gradient("exchange-top", [["0%", "#ffffff"], ["65%", "#ffffff"], ["100%", "#ededee"]]);
-  gradient("exchange-bed", [["0%", "#ffffff"], ["100%", "#e5e5e7"]]);
-  gradient("exchange-face", [["0%", "#e7e8e9"], ["100%", "#bfc1c4"]]);
-  const shade = HL.mk("radialGradient", { id: "exchange-shadow" }, defs);
-  HL.mk("stop", { offset: "0%", "stop-color": "#575b60", "stop-opacity": ".24" }, shade);
-  HL.mk("stop", { offset: "100%", "stop-color": "#575b60", "stop-opacity": "0" }, shade);
-  // Keep the original default hover response, without the demo controls or readout.
+  // Original figure and default hover response, without the standalone demo UI.
   mount({ stage, svg, read: { textContent: "" } }, 0.2);
 
 })();
