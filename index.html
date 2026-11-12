@@ -727,9 +727,32 @@
     }
 
     .build-status {
+      border-color: #2563eb;
+      background: #eff6ff;
+      color: #1d4ed8;
       cursor: default;
       animation: none;
       box-shadow: none;
+    }
+
+    .asrs-home-cover {
+      position: relative;
+      background: #ffffff;
+      overflow: hidden;
+      padding: 0;
+    }
+
+    .asrs-home-cover iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 74.08%;
+      height: 340px;
+      border: 0;
+      display: block;
+      pointer-events: none;
+      transform: translateY(-160px) scale(1.35);
+      transform-origin: top left;
     }
 
     .container-project-image {
@@ -1338,6 +1361,39 @@
             <span class="tag">Price-Time Matching</span>
             <span class="tag">Kafka</span>
             <span class="tag">Distributed Storage</span>
+          </div>
+        </article>
+
+        <article class="project-card">
+          <div class="project-topline">
+            <div>
+              <p class="project-type">Natural Language Processing · Information Retrieval</p>
+              <h3><a class="project-title-link" href="https://aarambhshrestha.com/asrs-scenario-explorer/" target="_blank" rel="noreferrer">Aviation Safety Report Search</a></h3>
+            </div>
+          </div>
+
+          <div class="project-copy">
+            <p>
+              A browser-based search experience for NASA Aviation Safety Reporting System narratives. It uses BM25 ranking, stopword removal, and Snowball stemming to retrieve relevant passages from 47,723 prepared reports without a server or API key.
+            </p>
+          </div>
+
+          <div class="project-image asrs-home-cover">
+            <iframe
+              src="https://aarambhshrestha.com/asrs-scenario-explorer/"
+              title="Animated Aviation Safety Report Search home screen"
+              loading="lazy"
+              scrolling="no"
+              tabindex="-1"
+            ></iframe>
+          </div>
+
+          <div class="tag-list">
+            <span class="tag">BM25 Search</span>
+            <span class="tag">NLP</span>
+            <span class="tag">NASA ASRS</span>
+            <a class="tag tag-link" href="https://aarambhshrestha.com/asrs-scenario-explorer/" target="_blank" rel="noreferrer">Open Project ↗</a>
+            <a class="tag tag-link" href="https://github.com/shresthaarambh/asrs-scenario-explorer" target="_blank" rel="noreferrer">GitHub ↗</a>
           </div>
         </article>
       </div>
