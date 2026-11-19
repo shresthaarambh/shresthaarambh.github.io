@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" role="img" aria-label="Animated hammer badge">
+  <style>
+    .hm{transform-box:view-box;transform-origin:8.2px 16.85px;animation:swing 1.2s infinite}
+    .hits{opacity:0;animation:hit 1.2s infinite}
+    @keyframes swing{0%{transform:rotate(-26deg);animation-timing-function:cubic-bezier(.3,0,.2,1)}50%{transform:rotate(-30deg);animation-timing-function:cubic-bezier(.6,0,1,.6)}68%{transform:rotate(12deg);animation-timing-function:ease-out}76%{transform:rotate(9deg);animation-timing-function:ease-in-out}100%{transform:rotate(-26deg)}}
+    @keyframes hit{0%,66%{opacity:0}69%,80%{opacity:1}92%,100%{opacity:0}}
+    @media (prefers-reduced-motion:reduce){.hm,.hits{animation:none}.hm{transform:rotate(9deg)}.hits{opacity:1}}
+  </style>
+  <mask id="hammer-badge-mask"><rect width="24" height="24" fill="#fff"/><g class="hm" fill="#000"><g transform="translate(11.58 12.83) scale(.5) translate(-12 -12) rotate(40 12 12)"><path d="M8 2.5h10.5A1.5 1.5 0 0 1 20 4v3a1.5 1.5 0 0 1-1.5 1.5H8z"/><path d="M8.6 2.5C5.6 2.5 3.4 4.6 2.5 8.6l-.2 1.1 1.4-.5C4.5 6.9 6 5.8 8.6 5.8z"/><path d="M10.75 9h2.5v12.25a1.25 1.25 0 0 1-2.5 0z"/></g></g><g class="hits" fill="#000"><g transform="rotate(12 8.2 16.85)"><g transform="translate(11.58 12.83) scale(.5) translate(-12 -12) rotate(40 12 12)"><rect x="-1.4" y="-.8" width="2.8" height="1.6" rx=".6" transform="translate(22.2 5.5) rotate(0)"/><rect x="-1.4" y="-.8" width="2.8" height="1.6" rx=".6" transform="translate(21.7 2.6) rotate(-55)"/><rect x="-1.4" y="-.8" width="2.8" height="1.6" rx=".6" transform="translate(21.7 8.4) rotate(55)"/></g></g></g></mask>
+  <circle cx="12" cy="12" r="11.5" fill="#ffffff" mask="url(#hammer-badge-mask)"/>
+</svg>
